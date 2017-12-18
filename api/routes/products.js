@@ -6,11 +6,26 @@ const Product = require("../models/products");
 
 router.get("/", (req, res, next) => {
   Product.find({})
-    .exec() // Obtenemos una promesa.
+    .select("name price _id") // Permite seleccionar que campos del documento se quieren consultar
+    .exec() // Ejecuta la consulta y devuelve una promesa.
     .then(docs => {
-      console.log("Respuesta desde la BD: " + docs);
+      const response = {
+        count: docs.length,
+        products: docs.map(doc => {
+          // Estructura que debe tener la respuesta.
+          return {
+            name: doc.name,
+            price: doc.price,
+            _id: doc._id,
+            request: {
+              type: "GET",
+              url: "http://localhost:3000/products/" + doc._id
+            }
+          };
+        })
+      };
       // if (docs.length >= 0) {
-      res.status(200).json(docs);
+      res.status(200).json(response);
       // } else {
       //   res.status(404).json({ message: "La BD está vacía." });
       // }
@@ -33,8 +48,16 @@ router.post("/", (req, res, next) => {
     .then(result => {
       console.log(result);
       res.status(201).json({
-        message: "Manejando solicitudes POST a /products",
-        result
+        message: "Producto creado satisfactoriamente",
+        productoCreado: {
+          name: result.name,
+          price: result.price,
+          _id: result._id,
+          request: {
+            type: "GET",
+            url: "http://localhost:3000/products/" + result._id
+          }
+        }
       });
     })
     .catch(err => {
@@ -47,11 +70,21 @@ router.get("/:productId", (req, res, next) => {
   const id = req.params.productId;
 
   Product.findById(id)
+    .select("name price _id")
     .exec()
     .then(doc => {
-      console.log("Desde la BD " + doc);
+      const response = {
+        product: doc,
+        request: {
+          type: "GET",
+          desciption:
+            "Usa la ruta establecia en el campo 'url' para obtener una lista de todos los productos",
+          url: "http://localhost:3000/products"
+        }
+      };
+      console.log("Desde la BD " + response);
       if (doc) {
-        res.status(200).json({ doc });
+        res.status(200).json({ response });
       } else {
         res.status(404).json({
           message: "Datos no encontrados para el ID proporcionado :("
@@ -74,8 +107,14 @@ router.patch("/:productId", (req, res, next) => {
   Product.update({ _id: id }, { $set: updateOps })
     .exec()
     .then(result => {
-      console.log(result);
-      res.status(200).json(result);
+      const responde = {
+        message: "Producto actualizado!",
+        request: {
+          type: "GET",
+          url: "http://localhost:3000/products/" + id
+        }
+      };
+      res.status(200).json(responde);
     })
     .catch(err => {
       throw new Error("err");
@@ -89,8 +128,15 @@ router.delete("/:productId", (req, res, next) => {
   Product.remove({ _id: id })
     .exec()
     .then(result => {
-      console.log("Datos elimindos de la BD: " + result);
-      res.status(200).json(result);
+      const response = {
+        message: "Producto eliminado!",
+        request: {
+          type: "POST",
+          url: "http://localhost:3000/products",
+          body: { name: "String", price: "Number" }
+        }
+      };
+      res.status(200).json(response);
     })
     .catch(err => {
       throw new Error(err);

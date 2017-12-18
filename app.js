@@ -10,6 +10,7 @@ const orderRoutes = require("./api/routes/orders");
 mongoose.connect("mongodb://localhost/academind-rest-api", {
   useMongoClient: true
 });
+mongoose.Promise = global.Promise; // Indicamos que queremos usar las promisas por defecto con NodeJs y no las de mongoose
 
 app.use(morgan("dev"));
 app.use(bodyParse.urlencoded({ extended: false }));
