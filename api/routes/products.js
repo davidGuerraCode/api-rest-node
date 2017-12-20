@@ -31,8 +31,10 @@ router.get("/", (req, res, next) => {
       // }
     })
     .catch(err => {
-      console.log(err);
-      res.status(500).json({ err });
+      console.error(err);
+      res.status(500).json({
+        err
+      });
     });
 });
 
@@ -61,8 +63,10 @@ router.post("/", (req, res, next) => {
       });
     })
     .catch(err => {
-      console.log(err);
-      res.status(500).json({ err });
+      console.error(err);
+      res.status(500).json({
+        err
+      });
     });
 });
 
@@ -77,14 +81,15 @@ router.get("/:productId", (req, res, next) => {
         product: doc,
         request: {
           type: "GET",
-          desciption:
-            "Usa la ruta establecia en el campo 'url' para obtener una lista de todos los productos",
+          desciption: "Usa la ruta establecia en el campo 'url' para obtener una lista de todos los productos",
           url: "http://localhost:3000/products"
         }
       };
       console.log("Desde la BD " + response);
       if (doc) {
-        res.status(200).json({ response });
+        res.status(200).json({
+          response
+        });
       } else {
         res.status(404).json({
           message: "Datos no encontrados para el ID proporcionado :("
@@ -92,8 +97,10 @@ router.get("/:productId", (req, res, next) => {
       }
     })
     .catch(err => {
-      console.log(err);
-      res.status(500).json({ err });
+      console.error(err);
+      res.status(500).json({
+        err
+      });
     });
 });
 
@@ -104,7 +111,11 @@ router.patch("/:productId", (req, res, next) => {
   for (const ops of req.body) {
     updateOps[ops.propName] = ops.value;
   }
-  Product.update({ _id: id }, { $set: updateOps })
+  Product.update({
+      _id: id
+    }, {
+      $set: updateOps
+    })
     .exec()
     .then(result => {
       const responde = {
@@ -117,15 +128,19 @@ router.patch("/:productId", (req, res, next) => {
       res.status(200).json(responde);
     })
     .catch(err => {
-      throw new Error("err");
-      res.status(500).json({ err });
+      console.error(err);
+      res.status(500).json({
+        err
+      });
     });
 });
 
 router.delete("/:productId", (req, res, next) => {
   const id = req.params.productId;
 
-  Product.remove({ _id: id })
+  Product.remove({
+      _id: id
+    })
     .exec()
     .then(result => {
       const response = {
@@ -133,14 +148,19 @@ router.delete("/:productId", (req, res, next) => {
         request: {
           type: "POST",
           url: "http://localhost:3000/products",
-          body: { name: "String", price: "Number" }
+          body: {
+            name: "String",
+            price: "Number"
+          }
         }
       };
       res.status(200).json(response);
     })
     .catch(err => {
-      throw new Error(err);
-      res.status(500).json({ err });
+      console.error(err);
+      res.status(500).json({
+        err
+      });
     });
 });
 
