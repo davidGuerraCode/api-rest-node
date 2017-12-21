@@ -8,6 +8,7 @@ const Order = require('../models/order');
 router.get("/", (req, res, next) => {
   Order.find()
     .select('product quantity _id')
+    .populate('product', 'name') // el método populate enlaza el contenido de la referencia que se creada. El segundo parámetro sirbe para especificar que campos de la referencia se quieren enlazar.
     .exec()
     .then(docs => {
       res.status(200).json({
@@ -73,6 +74,8 @@ router.get("/:orderId", (req, res, next) => {
   const id = req.params.orderId;
 
   Order.findById(id)
+    .select('product quantity')
+    .populate('product', 'name price')
     .exec()
     .then(order => {
       if (!order) {
