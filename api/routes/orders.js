@@ -1,11 +1,12 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const checkAuth = require('../middleware/check-auth');
 
-const Product = require('../models/products')
+const Product = require('../models/products');
 const Order = require('../models/order');
 
-router.get("/", (req, res, next) => {
+router.get('/', checkAuth, (req, res, next) => {
   Order.find()
     .select('product quantity _id')
     .populate('product', 'name') // el método populate enlaza el contenido de la referencia que se creada. El segundo parámetro sirbe para especificar que campos de la referencia se quieren enlazar.
@@ -22,7 +23,7 @@ router.get("/", (req, res, next) => {
               type: 'GET',
               url: 'http://localhost:3000/orders/' + doc.id
             }
-          }
+          };
         })
       });
     })
@@ -31,7 +32,7 @@ router.get("/", (req, res, next) => {
     });
 });
 
-router.post("/", (req, res, next) => {
+router.post('/', checkAuth, (req, res, next) => {
   Product.findById(req.body.productId)
     .then(product => {
       if (!product) {
@@ -44,8 +45,7 @@ router.post("/", (req, res, next) => {
         quantity: req.body.quantity,
         product: req.body.productId
       });
-      return order
-        .save() // A la hora de guardar datos no es necesario colocar el método exec(), ya que el método save() ya devuelve una promesa.
+      return order.save(); // A la hora de guardar datos no es necesario colocar el método exec(), ya que el método save() ya devuelve una promesa.
     })
     .then(result => {
       console.log(result);
@@ -70,7 +70,7 @@ router.post("/", (req, res, next) => {
     });
 });
 
-router.get("/:orderId", (req, res, next) => {
+router.get('/:orderId', checkAuth, (req, res, next) => {
   const id = req.params.orderId;
 
   Order.findById(id)
@@ -81,12 +81,13 @@ router.get("/:orderId", (req, res, next) => {
       if (!order) {
         return res.status(404).json({
           message: 'Orden no encontrada!'
-        })
+        });
       }
       res.status(200).json({
         order,
         request: 'GET',
-        description: 'Usa la ruta establecia en el campo "url" para obtener una lista con todas las ordenes',
+        description:
+          'Usa la ruta establecia en el campo "url" para obtener una lista con todas las ordenes',
         url: 'http://localhost:3000/orders'
       });
     })
@@ -94,15 +95,15 @@ router.get("/:orderId", (req, res, next) => {
       res.status(500).json({
         err
       });
-    })
+    });
 });
 
-router.delete("/:orderId", (req, res, next) => {
+router.delete('/:orderId', checkAuth, (req, res, next) => {
   const id = req.params.orderId;
 
   Order.remove({
-      _id: id
-    })
+    _id: id
+  })
     .exec()
     .then(result => {
       res.status(200).json({
@@ -115,9 +116,9 @@ router.delete("/:orderId", (req, res, next) => {
             quantity: 'Number'
           }
         }
-      })
+      });
     })
-    .catch()
+    .catch();
 });
 
 module.exports = router;

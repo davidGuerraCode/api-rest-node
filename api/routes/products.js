@@ -1,13 +1,14 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const multer = require('multer');
+const checkAuth = require('../middleware/check-auth');
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function(req, file, cb) {
     cb(null, './uploads/');
   },
-  filename: function (req, file, cb) {
+  filename: function(req, file, cb) {
     cb(null, new Date().toISOString() + ' - ' + file.originalname);
   }
 });
@@ -20,7 +21,7 @@ const fileFilter = (req, file, cb) => {
   if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
     cb(null, true); // Recibe la imagen si se cumple la condición.
   } else {
-    cb(null, false); // Rechaza todos los otros tipos de archivo 
+    cb(null, false); // Rechaza todos los otros tipos de archivo
   }
 };
 
@@ -32,11 +33,11 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-const Product = require("../models/products");
+const Product = require('../models/products');
 
-router.get("/", (req, res, next) => {
+router.get('/', (req, res, next) => {
   Product.find({})
-    .select("name price _id productImage") // Permite seleccionar que campos del documento se quieren consultar
+    .select('name price _id productImage') // Permite seleccionar que campos del documento se quieren consultar
     .exec() // Ejecuta la consulta y devuelve una promesa.
     .then(docs => {
       const response = {
@@ -49,8 +50,8 @@ router.get("/", (req, res, next) => {
             productImage: doc.productImage,
             _id: doc._id,
             request: {
-              type: "GET",
-              url: "http://localhost:3000/products/" + doc._id
+              type: 'GET',
+              url: 'http://localhost:3000/products/' + doc._id
             }
           };
         })
@@ -69,7 +70,7 @@ router.get("/", (req, res, next) => {
     });
 });
 
-router.post("/", upload.single('productImage'), (req, res, next) => {
+router.post('/', checkAuth, upload.single('productImage'), (req, res, next) => {
   console.log(req.file);
   const product = new Product({
     // Instanciamos el Schema que queremos usar
@@ -83,14 +84,14 @@ router.post("/", upload.single('productImage'), (req, res, next) => {
     .then(result => {
       console.log(result);
       res.status(201).json({
-        message: "Producto creado satisfactoriamente",
+        message: 'Producto creado satisfactoriamente',
         productoCreado: {
           name: result.name,
           price: result.price,
           _id: result._id,
           request: {
-            type: "GET",
-            url: "http://localhost:3000/products/" + result._id
+            type: 'GET',
+            url: 'http://localhost:3000/products/' + result._id
           }
         }
       });
@@ -103,29 +104,30 @@ router.post("/", upload.single('productImage'), (req, res, next) => {
     });
 });
 
-router.get("/:productId", (req, res, next) => {
+router.get('/:productId', (req, res, next) => {
   const id = req.params.productId;
 
   Product.findById(id)
-    .select("name price _id productImage")
+    .select('name price _id productImage')
     .exec()
     .then(doc => {
       const response = {
         product: doc,
         request: {
-          type: "GET",
-          desciption: "Usa la ruta establecia en el campo 'url' para obtener una lista de todos los productos",
-          url: "http://localhost:3000/products"
+          type: 'GET',
+          desciption:
+            "Usa la ruta establecia en el campo 'url' para obtener una lista de todos los productos",
+          url: 'http://localhost:3000/products'
         }
       };
-      console.log("Desde la BD " + response);
+      console.log('Desde la BD ' + response);
       if (doc) {
         res.status(200).json({
           response
         });
       } else {
         res.status(404).json({
-          message: "Datos no encontrados para el ID proporcionado :("
+          message: 'Datos no encontrados para el ID proporcionado :('
         });
       }
     })
@@ -137,25 +139,28 @@ router.get("/:productId", (req, res, next) => {
     });
 });
 
-router.patch("/:productId", (req, res, next) => {
+router.patch('/:productId', checkAuth, (req, res, next) => {
   const id = req.params.productId;
   const updateOps = {};
 
   for (const ops of req.body) {
     updateOps[ops.propName] = ops.value;
   }
-  Product.update({
+  Product.update(
+    {
       _id: id
-    }, {
+    },
+    {
       $set: updateOps
-    })
+    }
+  )
     .exec()
     .then(result => {
       const responde = {
-        message: "Producto actualizado!",
+        message: 'Producto actualizado!',
         request: {
-          type: "GET",
-          url: "http://localhost:3000/products/" + id
+          type: 'GET',
+          url: 'http://localhost:3000/products/' + id
         }
       };
       res.status(200).json(responde);
@@ -168,22 +173,22 @@ router.patch("/:productId", (req, res, next) => {
     });
 });
 
-router.delete("/:productId", (req, res, next) => {
+router.delete('/:productId', checkAuth, (req, res, next) => {
   const id = req.params.productId;
 
   Product.remove({
-      _id: id
-    })
+    _id: id
+  })
     .exec()
     .then(result => {
       const response = {
-        message: "Producto eliminado!",
+        message: 'Producto eliminado!',
         request: {
-          type: "POST",
-          url: "http://localhost:3000/products",
+          type: 'POST',
+          url: 'http://localhost:3000/products',
           body: {
-            name: "String",
-            price: "Number"
+            name: 'String',
+            price: 'Number'
           }
         }
       };
